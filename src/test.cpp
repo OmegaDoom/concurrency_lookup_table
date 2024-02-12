@@ -167,6 +167,42 @@ TEST(LookupTable, ParrallelWriteReadValuesWithFixedConcurrency)
     thread5.join();
 }
 
+TEST(LookupTable, ParrallelWriteRemoveReadValues) {
+  omega::concurrent_lookup_table<int, std::string> table(64, 256);
+  std::atomic_bool thread1_is_done = false;
+
+  constexpr int iterations = 100000;
+  std::thread thread1([&table, &thread1_is_done]() {
+    for (int i = 0; i < iterations; ++i) {
+      int idx = i;
+      std::optional<std::string> value;
+      while (!value.has_value()) {
+        value = table.get_value(idx);
+      }
+      EXPECT_EQ(value.value(), "AAAAAAA = " + std::to_string(idx));
+    }
+
+    std::atomic_store_explicit(&thread1_is_done, true,
+                               std::memory_order_relaxed);
+  });
+
+  std::thread thread2([&table, &thread1_is_done]() {
+    int step = 1;
+    for (;;) {
+      if (std::atomic_load_explicit(&thread1_is_done,
+                                    std::memory_order_relaxed))
+        break;
+      for (int i = 0; i < iterations; ++i) {
+        int idx = i;
+        table.add_or_update(idx, "AAAAAAA = " + std::to_string(idx));
+        table.remove(idx - 20);
+      }
+    }
+  });
+
+  thread1.join();
+  thread2.join();
+}
 int main(int argc, char* argv[])
 {
     testing::InitGoogleTest(&argc, argv);

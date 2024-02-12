@@ -245,8 +245,17 @@ public:
 
     std::optional<Value> get_value(Key const& key) const
     {
-        auto table = std::atomic_load_explicit(&m_table, std::memory_order_acquire);
+      for (;;) {
+        auto table =
+            std::atomic_load_explicit(&m_table, std::memory_order_acquire);
+        auto const lock = table->lock(key);
+        auto after_lock_table =
+            std::atomic_load_explicit(&m_table, std::memory_order_acquire);
+        if (table != after_lock_table)
+          continue;
+
         return table->get_value(key);
+      }
     }
 
     void add_or_update(Key const& key, Value const& value)

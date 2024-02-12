@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 include(GoogleTest)
 
-project(thread_safe_lookup_table LANGUAGES CXX )
+project(concurrent_lookup_table LANGUAGES CXX )
 set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(src)
