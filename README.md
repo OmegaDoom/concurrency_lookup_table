@@ -5,12 +5,14 @@ This is a thread safe hash table. It is designed to achieve fine-grained concurr
 ## Interface
 1. concurrent_lookup_table(std::size_t concurrency, std::size_t capacity, bool grow_concurrency_on_resize = true)
  concurrency - initial number of mutexes to achieve fine-grained concurrency(it grows together with buckets if allowed) 
+
  capacity - initial number of buckets
+
  grow_concurrency_on_resize - if number of mutexes grows together with buckets or not
 
 2. std::optional<Value> get_value(Key const& key) const - gets a value by key.
 
-3. void add_or_update(Key const& key, Value const& value) - add a new value by key or updates existing one
+3. void add_or_update(Key const& key, Value const& value) - adds a new value by key or updates existing one
 
 4. void remove(Key const& key) - removes value by key
 
